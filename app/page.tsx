@@ -1,69 +1,543 @@
-import Image from "next/image";
+"use client";
+
+import React, { useState, useEffect } from "react";
+import confetti from "canvas-confetti";
+import { HealthData, DailyPlan, LoggedExercise, ChecklistItem, SleepLog } from "./types";
+import { Header, TabType } from "./components/Header";
+import { DailyPlanner } from "./components/DailyPlanner";
+import { DailyChecklist } from "./components/DailyChecklist";
+import { WaterTracker } from "./components/WaterTracker";
+import { SleepTracker } from "./components/SleepTracker";
+import { ExerciseTracker } from "./components/ExerciseTracker";
+import { DailySummary } from "./components/DailySummary";
+import { ResetModal } from "./components/ResetModal";
+import { ArrowRight, Sparkles } from "lucide-react";
+
+const STORAGE_KEY = "student_health_tracker_data_v3";
+const THEME_KEY = "student_health_tracker_theme_v3";
+
+// Pristine blank initial state with NO pre-filled dummy data
+const getInitialBlankData = (): HealthData => ({
+  plan: {
+    date: "",
+    waterGoalGlasses: "",
+    sleepGoalHours: "",
+    focusNote: "",
+    plannedExercises: [],
+    isPlanSaved: false,
+  },
+  waterGlasses: 0,
+  sleep: {
+    hours: "",
+    bedTime: "",
+    wakeTime: "",
+    quality: "",
+    notes: "",
+  },
+  exercises: [],
+  checklist: [],
+});
 
 export default function Home() {
+  const [data, setData] = useState<HealthData>(getInitialBlankData);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState<boolean>(false);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<TabType>("planner");
+
+  // Load saved theme and data from localStorage on initial mount
+  useEffect(() => {
+    try {
+      const savedTheme = localStorage.getItem(THEME_KEY);
+      if (savedTheme === "dark") {
+        setIsDarkMode(true);
+        document.documentElement.classList.add("dark");
+      } else {
+        setIsDarkMode(false);
+        document.documentElement.classList.remove("dark");
+      }
+
+      const savedData = localStorage.getItem(STORAGE_KEY);
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        setData(parsed);
+      }
+    } catch (err) {
+      console.error("Failed to load local storage:", err);
+    } finally {
+      setIsLoaded(true);
+    }
+  }, []);
+
+  // Save data to localStorage whenever updated
+  useEffect(() => {
+    if (!isLoaded) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (err) {
+      console.error("Failed to save local storage:", err);
+    }
+  }, [data, isLoaded]);
+
+  // Handle Theme Toggle
+  const toggleTheme = () => {
+    setIsDarkMode((prev) => {
+      const nextTheme = !prev;
+      if (nextTheme) {
+        document.documentElement.classList.add("dark");
+        localStorage.setItem(THEME_KEY, "dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+        localStorage.setItem(THEME_KEY, "light");
+      }
+      return nextTheme;
+    });
+  };
+
+  // Trigger celebratory confetti when all tasks completed
+  const triggerConfetti = () => {
+    confetti({
+      particleCount: 80,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ["#97EFE9", "#007991", "#222E50"],
+    });
+  };
+
+  // Daily Planner: update plan and synchronize checklist items
+  const handleUpdatePlan = (newPlan: DailyPlan) => {
+    const updatedChecklist = [...data.checklist];
+
+    // 1. Water target checklist item
+    const waterGoalNum = Number(newPlan.waterGoalGlasses);
+    if (waterGoalNum > 0) {
+      const existingWaterTaskIdx = updatedChecklist.findIndex((t) => t.category === "water");
+      const isWaterMet = data.waterGlasses >= waterGoalNum;
+      const title = `Drink ${waterGoalNum} glasses of water (Current: ${data.waterGlasses}/${waterGoalNum})`;
+
+      if (existingWaterTaskIdx >= 0) {
+        updatedChecklist[existingWaterTaskIdx] = {
+          ...updatedChecklist[existingWaterTaskIdx],
+          title,
+          completed: isWaterMet || updatedChecklist[existingWaterTaskIdx].completed,
+        };
+      } else {
+        updatedChecklist.push({
+          id: "task-water-goal",
+          title,
+          category: "water",
+          completed: isWaterMet,
+          relatedTarget: `${waterGoalNum} glasses`,
+        });
+      }
+    }
+
+    // 2. Sleep target checklist item
+    const sleepGoalNum = Number(newPlan.sleepGoalHours);
+    if (sleepGoalNum > 0) {
+      const existingSleepTaskIdx = updatedChecklist.findIndex((t) => t.category === "sleep");
+      const currentSleep = Number(data.sleep.hours) || 0;
+      const isSleepMet = currentSleep >= sleepGoalNum;
+      const title = `Get ${sleepGoalNum} hours of sleep (Logged: ${currentSleep}h)`;
+
+      if (existingSleepTaskIdx >= 0) {
+        updatedChecklist[existingSleepTaskIdx] = {
+          ...updatedChecklist[existingSleepTaskIdx],
+          title,
+          completed: isSleepMet || updatedChecklist[existingSleepTaskIdx].completed,
+        };
+      } else {
+        updatedChecklist.push({
+          id: "task-sleep-goal",
+          title,
+          category: "sleep",
+          completed: isSleepMet,
+          relatedTarget: `${sleepGoalNum} hours`,
+        });
+      }
+    }
+
+    // 3. Planned exercises checklist items
+    newPlan.plannedExercises.forEach((pe) => {
+      const existingTask = updatedChecklist.find((t) => t.id === `task-pe-${pe.id}`);
+      if (!existingTask) {
+        updatedChecklist.push({
+          id: `task-pe-${pe.id}`,
+          title: `Workout: ${pe.name} (${pe.durationMinutes} mins - ${pe.category})`,
+          category: "exercise",
+          completed: false,
+        });
+      }
+    });
+
+    setData({
+      ...data,
+      plan: newPlan,
+      checklist: updatedChecklist,
+    });
+  };
+
+  // Water Tracker: increment or set water count
+  const handleUpdateWater = (glasses: number) => {
+    const updatedChecklist = data.checklist.map((task) => {
+      if (task.category === "water") {
+        const waterGoalNum = Number(data.plan.waterGoalGlasses) || 8;
+        const isMet = glasses >= waterGoalNum;
+        return {
+          ...task,
+          title: `Drink ${waterGoalNum} glasses of water (Current: ${glasses}/${waterGoalNum})`,
+          completed: isMet,
+          completedAt: isMet ? new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : undefined,
+        };
+      }
+      return task;
+    });
+
+    setData({
+      ...data,
+      waterGlasses: glasses,
+      checklist: updatedChecklist,
+    });
+  };
+
+  // Sleep Tracker: update sleep log
+  const handleUpdateSleep = (newSleep: SleepLog) => {
+    const updatedChecklist = data.checklist.map((task) => {
+      if (task.category === "sleep") {
+        const sleepGoalNum = Number(data.plan.sleepGoalHours) || 8;
+        const actualHours = Number(newSleep.hours) || 0;
+        const isMet = actualHours >= sleepGoalNum && actualHours > 0;
+        return {
+          ...task,
+          title: `Get ${sleepGoalNum} hours of sleep (Logged: ${actualHours}h)`,
+          completed: isMet,
+          completedAt: isMet ? new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : undefined,
+        };
+      }
+      return task;
+    });
+
+    setData({
+      ...data,
+      sleep: newSleep,
+      checklist: updatedChecklist,
+    });
+  };
+
+  // Exercise Tracker: add logged exercise
+  const handleAddExercise = (exerciseInput: Omit<LoggedExercise, "id" | "timestamp">) => {
+    const newExercise: LoggedExercise = {
+      ...exerciseInput,
+      id: "ex-" + Date.now(),
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    };
+
+    const updatedChecklist = [...data.checklist];
+    const matchingPlanTask = updatedChecklist.find(
+      (t) => t.category === "exercise" && !t.completed && t.title.toLowerCase().includes(exerciseInput.name.toLowerCase())
+    );
+
+    if (matchingPlanTask) {
+      matchingPlanTask.completed = true;
+      matchingPlanTask.completedAt = newExercise.timestamp;
+    } else {
+      updatedChecklist.push({
+        id: "task-completed-ex-" + newExercise.id,
+        title: `Completed ${exerciseInput.name} (${exerciseInput.durationMinutes}m)`,
+        category: "exercise",
+        completed: true,
+        completedAt: newExercise.timestamp,
+      });
+    }
+
+    setData({
+      ...data,
+      exercises: [newExercise, ...data.exercises],
+      checklist: updatedChecklist,
+    });
+  };
+
+  // Exercise Tracker: delete logged exercise
+  const handleDeleteExercise = (id: string) => {
+    setData({
+      ...data,
+      exercises: data.exercises.filter((e) => e.id !== id),
+    });
+  };
+
+  // Exercise Tracker: clear all exercises
+  const handleClearExercises = () => {
+    setData({
+      ...data,
+      exercises: [],
+    });
+  };
+
+  // Checklist: toggle task completed status
+  const handleToggleChecklistItem = (id: string) => {
+    let allJustCompleted = false;
+
+    const updatedChecklist = data.checklist.map((item) => {
+      if (item.id === id) {
+        const nextCompleted = !item.completed;
+        return {
+          ...item,
+          completed: nextCompleted,
+          completedAt: nextCompleted ? new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : undefined,
+        };
+      }
+      return item;
+    });
+
+    const completedCount = updatedChecklist.filter((t) => t.completed).length;
+    if (completedCount === updatedChecklist.length && updatedChecklist.length > 0) {
+      allJustCompleted = true;
+    }
+
+    setData({
+      ...data,
+      checklist: updatedChecklist,
+    });
+
+    if (allJustCompleted) {
+      triggerConfetti();
+    }
+  };
+
+  // Checklist: add custom student task
+  const handleAddCustomChecklistItem = (title: string, category: ChecklistItem["category"]) => {
+    const newItem: ChecklistItem = {
+      id: "task-custom-" + Date.now(),
+      title,
+      category,
+      completed: false,
+    };
+
+    setData({
+      ...data,
+      checklist: [...data.checklist, newItem],
+    });
+  };
+
+  // Checklist: delete task
+  const handleDeleteChecklistItem = (id: string) => {
+    setData({
+      ...data,
+      checklist: data.checklist.filter((t) => t.id !== id),
+    });
+  };
+
+  // Reset all data to pristine blank slate
+  const handleResetAllData = () => {
+    const fresh = getInitialBlankData();
+    setData(fresh);
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const completedCount = data.checklist.filter((i) => i.completed).length;
+  const totalCount = data.checklist.length;
+  const pendingCount = totalCount - completedCount;
+  const completionRate = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F4FBFB] text-[#222E50]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-[#007991] border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm font-bold">Loading Student Health Tracker...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+    <div className="min-h-screen flex flex-col transition-colors duration-200">
+      {/* Top Header with improved Logo and Tab Switcher */}
+      <Header
+        activeTab={activeTab}
+        onChangeTab={setActiveTab}
+        isDarkMode={isDarkMode}
+        onToggleTheme={toggleTheme}
+        completionRate={completionRate}
+        pendingTasksCount={pendingCount}
+      />
+
+      {/* Main Container - Tabbed View */}
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 lg:p-8">
+        {/* TAB 1: Daily Planner */}
+        {activeTab === "planner" && (
+          <div className="space-y-6 animate-fadeIn">
+            <DailyPlanner
+              plan={data.plan}
+              onUpdatePlan={handleUpdatePlan}
+              isDarkMode={isDarkMode}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+
+            {/* Quick Next Step Helper */}
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setActiveTab("trackers")}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
+                style={{ backgroundColor: "#007991", color: "#FFFFFF" }}
+              >
+                <span>Continue to Health Trackers</span>
+                <ArrowRight className="w-4 h-4 text-[#97EFE9]" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2: Interactive Health Trackers */}
+        {activeTab === "trackers" && (
+          <div className="space-y-6 animate-fadeIn">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Water Tracker with Animated Liquid Glass */}
+              <WaterTracker
+                waterGlasses={data.waterGlasses}
+                goalGlasses={data.plan.waterGoalGlasses}
+                onUpdateWater={handleUpdateWater}
+                isDarkMode={isDarkMode}
+              />
+
+              {/* Sleep Tracker */}
+              <SleepTracker
+                sleep={data.sleep}
+                goalHours={data.plan.sleepGoalHours}
+                onUpdateSleep={handleUpdateSleep}
+                isDarkMode={isDarkMode}
+              />
+
+              {/* Exercise Tracker */}
+              <ExerciseTracker
+                exercises={data.exercises}
+                onAddExercise={handleAddExercise}
+                onDeleteExercise={handleDeleteExercise}
+                onClearExercises={handleClearExercises}
+                isDarkMode={isDarkMode}
+              />
+            </div>
+
+            {/* Navigation buttons */}
+            <div className="flex justify-between items-center pt-2">
+              <button
+                type="button"
+                onClick={() => setActiveTab("planner")}
+                className="px-4 py-2 rounded-xl text-xs md:text-sm font-semibold border transition-all hover:scale-105 cursor-pointer"
+                style={{
+                  borderColor: "#007991",
+                  color: isDarkMode ? "#97EFE9" : "#222E50",
+                  backgroundColor: isDarkMode ? "#1A233D" : "#FFFFFF",
+                }}
+              >
+                ← Back to Planner
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("checklist")}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
+                style={{ backgroundColor: "#007991", color: "#FFFFFF" }}
+              >
+                <span>View Daily Checklist</span>
+                <ArrowRight className="w-4 h-4 text-[#97EFE9]" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: Daily Checklist */}
+        {activeTab === "checklist" && (
+          <div className="space-y-6 animate-fadeIn">
+            <DailyChecklist
+              items={data.checklist}
+              onToggleItem={handleToggleChecklistItem}
+              onAddItem={handleAddCustomChecklistItem}
+              onDeleteItem={handleDeleteChecklistItem}
+              isDarkMode={isDarkMode}
+            />
+
+            <div className="flex justify-between items-center pt-2">
+              <button
+                type="button"
+                onClick={() => setActiveTab("trackers")}
+                className="px-4 py-2 rounded-xl text-xs md:text-sm font-semibold border transition-all hover:scale-105 cursor-pointer"
+                style={{
+                  borderColor: "#007991",
+                  color: isDarkMode ? "#97EFE9" : "#222E50",
+                  backgroundColor: isDarkMode ? "#1A233D" : "#FFFFFF",
+                }}
+              >
+                ← Back to Trackers
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("summary")}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
+                style={{ backgroundColor: "#007991", color: "#FFFFFF" }}
+              >
+                <span>View Summary & Health Score</span>
+                <ArrowRight className="w-4 h-4 text-[#97EFE9]" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: Daily Overview & Summary */}
+        {activeTab === "summary" && (
+          <div className="space-y-6 animate-fadeIn">
+            <DailySummary
+              data={data}
+              isDarkMode={isDarkMode}
+              onOpenResetModal={() => setIsResetModalOpen(true)}
+            />
+
+            <div className="flex justify-start pt-2">
+              <button
+                type="button"
+                onClick={() => setActiveTab("checklist")}
+                className="px-4 py-2 rounded-xl text-xs md:text-sm font-semibold border transition-all hover:scale-105 cursor-pointer"
+                style={{
+                  borderColor: "#007991",
+                  color: isDarkMode ? "#97EFE9" : "#222E50",
+                  backgroundColor: isDarkMode ? "#1A233D" : "#FFFFFF",
+                }}
+              >
+                ← Back to Checklist
+              </button>
+            </div>
+          </div>
+        )}
       </main>
+
+      {/* Footer */}
+      <footer
+        className="mt-12 py-5 border-t text-center text-xs transition-colors"
+        style={{
+          borderColor: isDarkMode ? "#2F3E68" : "#CBEFEE",
+          backgroundColor: isDarkMode ? "#131B30" : "#F4FBFB",
+          color: isDarkMode ? "#8AA0C7" : "#64779F",
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p>© 2026 Student Health Tracker — Built with #97EFE9, #007991, & #222E50.</p>
+          <div className="flex items-center gap-2 font-semibold" style={{ color: "#007991" }}>
+            <Sparkles className="w-3.5 h-3.5 text-[#97EFE9]" />
+            <span>Student Wellness & Focus Companion</span>
+          </div>
+        </div>
+      </footer>
+
+      {/* Confirmation Modal to Reset to Pristine Blank State */}
+      <ResetModal
+        isOpen={isResetModalOpen}
+        onClose={() => setIsResetModalOpen(false)}
+        onConfirm={handleResetAllData}
+        isDarkMode={isDarkMode}
+      />
     </div>
   );
 }

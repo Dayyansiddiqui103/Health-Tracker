@@ -1,26 +1,134 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --color-mint: #97EFE9;
+    --color-teal: #007991;
+    --color-navy: #222E50;
+    
+    /* Light Theme */
+    --bg-main: #F4FBFB;
+    --bg-surface: #FFFFFF;
+    --bg-surface-elevated: #E8F8F7;
+    --border-color: #CBEFEE;
+    --text-primary: #222E50;
+    --text-secondary: #3D4E75;
+    --text-muted: #64779F;
+    
+    --badge-bg: #97EFE9;
+    --badge-text: #222E50;
+  }
+
+  .dark {
+    /* Dark Theme */
+    --bg-main: #131B30;
+    --bg-surface: #1A233D;
+    --bg-surface-elevated: #222E50;
+    --border-color: #2F3E68;
+    --text-primary: #F0FCFB;
+    --text-secondary: #97EFE9;
+    --text-muted: #8AA0C7;
+    
+    --badge-bg: #222E50;
+    --badge-text: #97EFE9;
   }
 }
 
+/* Hide scrollbars globally */
+html, body, * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  min-height: 100vh;
+  transition: background-color 0.25s ease, color 0.25s ease;
+  overflow-x: hidden;
+}
+
+/* Glassmorphism & custom utility classes */
+.theme-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 20px -2px rgba(0, 121, 145, 0.06);
+}
+
+.dark .theme-card {
+  box-shadow: 0 4px 25px -2px rgba(0, 0, 0, 0.5);
+}
+
+.theme-card-elevated {
+  background-color: var(--bg-surface-elevated);
+  border: 1px solid var(--border-color);
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid #007991;
+  outline-offset: 2px;
+}
+
+/* Wave & Water Animations */
+@keyframes waveMove {
+  0% {
+    transform: translateX(0) translateZ(0) scaleY(1);
+  }
+  50% {
+    transform: translateX(-25%) translateZ(0) scaleY(0.85);
+  }
+  100% {
+    transform: translateX(-50%) translateZ(0) scaleY(1);
+  }
+}
+
+@keyframes bubbleFloat {
+  0% {
+    transform: translateY(100%) scale(0.6);
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-20%) scale(1.1);
+    opacity: 0;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(151, 239, 233, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(0, 121, 145, 0.35);
+  }
+}
+
+.animate-wave {
+  animation: waveMove 4s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite;
+}
+
+.animate-wave-slow {
+  animation: waveMove 6s cubic-bezier(0.36, 0.45, 0.63, 0.53) -2s infinite;
+}
+
+.animate-bubble-1 {
+  animation: bubbleFloat 3s ease-in infinite;
+}
+.animate-bubble-2 {
+  animation: bubbleFloat 2.4s ease-in 0.8s infinite;
+}
+.animate-bubble-3 {
+  animation: bubbleFloat 3.5s ease-in 1.4s infinite;
+}
+
+.pulse-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
 }
