@@ -37,36 +37,38 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
     <div className="theme-card rounded-2xl p-6 transition-all flex flex-col justify-between">
       <div>
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-[#007991]/20">
+        <div className="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-neutral-800">
           <div className="flex items-center gap-3">
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center shadow-xs"
-              style={{ backgroundColor: "#222E50", border: "1.5px solid #007991" }}
+              className="w-9 h-9 rounded-xl flex items-center justify-center"
+              style={{
+                backgroundColor: isDarkMode ? "#222E50" : "#F1F5F8",
+                border: "1px solid #007991",
+              }}
             >
-              <Moon className="w-5 h-5 text-[#97EFE9]" />
+              <Moon className="w-4 h-4 text-[#007991]" />
             </div>
             <div>
               <h3
                 className="text-base font-bold tracking-tight"
-                style={{ color: isDarkMode ? "#97EFE9" : "#222E50" }}
+                style={{ color: isDarkMode ? "#F8FAFC" : "#222E50" }}
               >
                 Sleep Tracker
               </h3>
-              <p className="text-xs" style={{ color: isDarkMode ? "#8AA0C7" : "#3D4E75" }}>
-                Target: {goalHours ? `${goalHours} hrs` : "Set in Planner"}
+              <p className="text-xs" style={{ color: isDarkMode ? "#8699B8" : "#8496B3" }}>
+                Goal: {goalHours ? `${goalHours} hrs` : "Set in Planner"}
               </p>
             </div>
           </div>
 
           <span
-            className="text-xs font-bold px-2.5 py-0.5 rounded-full"
+            className="text-xs font-semibold px-2.5 py-0.5 rounded-full"
             style={{
-              backgroundColor: isDarkMode ? "#222E50" : "#E8F8F7",
+              backgroundColor: isDarkMode ? "#222E50" : "#F1F5F8",
               color: isDarkMode ? "#97EFE9" : "#007991",
-              border: "1px solid #007991",
             }}
           >
-            {sleep.hours !== "" ? `${sleep.hours} hrs logged` : "Not logged yet"}
+            {sleep.hours !== "" ? `${sleep.hours} hrs logged` : "Not logged"}
           </span>
         </div>
 
@@ -75,7 +77,7 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
           <label
             htmlFor="sleep-hours-input"
             className="text-xs font-bold uppercase tracking-wider block mb-1.5"
-            style={{ color: isDarkMode ? "#97EFE9" : "#222E50" }}
+            style={{ color: isDarkMode ? "#F8FAFC" : "#222E50" }}
           >
             Hours Slept (Manual Input)
           </label>
@@ -93,16 +95,16 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
                   const val = e.target.value === "" ? "" : Math.max(0, parseFloat(e.target.value) || 0);
                   onUpdateSleep({ ...sleep, hours: val });
                 }}
-                className="w-full text-lg font-bold px-3.5 py-2 rounded-xl border focus-ring"
+                className="w-full text-base font-bold px-3.5 py-2 rounded-xl border focus-ring"
                 style={{
-                  backgroundColor: isDarkMode ? "#131B30" : "#F4FBFB",
-                  borderColor: "#007991",
-                  color: isDarkMode ? "#F0FCFB" : "#222E50",
+                  backgroundColor: isDarkMode ? "#0F172A" : "#FFFFFF",
+                  borderColor: isDarkMode ? "#27375A" : "#CBD5E1",
+                  color: isDarkMode ? "#F8FAFC" : "#222E50",
                 }}
               />
               <span
                 className="absolute right-3.5 top-2.5 text-xs font-medium pointer-events-none"
-                style={{ color: isDarkMode ? "#8AA0C7" : "#3D4E75" }}
+                style={{ color: isDarkMode ? "#8699B8" : "#8496B3" }}
               >
                 hrs
               </span>
@@ -114,11 +116,11 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
                 key={hr}
                 type="button"
                 onClick={() => onUpdateSleep({ ...sleep, hours: hr })}
-                className="px-3 py-2 text-xs font-bold rounded-xl border transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                className="px-3 py-2 text-xs font-semibold rounded-xl border transition-all hover:opacity-85 active:scale-95 cursor-pointer"
                 style={{
-                  backgroundColor: sleep.hours === hr ? "#007991" : isDarkMode ? "#131B30" : "#F4FBFB",
-                  borderColor: "#007991",
-                  color: sleep.hours === hr ? "#FFFFFF" : isDarkMode ? "#97EFE9" : "#222E50",
+                  backgroundColor: sleep.hours === hr ? "#007991" : "transparent",
+                  borderColor: sleep.hours === hr ? "#007991" : isDarkMode ? "#27375A" : "#E2E8F0",
+                  color: sleep.hours === hr ? "#FFFFFF" : isDarkMode ? "#8699B8" : "#4A5B7D",
                 }}
               >
                 {hr}h
@@ -129,19 +131,22 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
 
         {/* Progress Bar vs Goal */}
         <div className="mt-4">
-          <div className="flex justify-between text-xs mb-1 font-semibold" style={{ color: isDarkMode ? "#8AA0C7" : "#3D4E75" }}>
-            <span>Target Goal: {target} hours</span>
+          <div
+            className="flex justify-between text-xs mb-1 font-medium"
+            style={{ color: isDarkMode ? "#8699B8" : "#8496B3" }}
+          >
+            <span>Goal: {target} hours</span>
             <span>{progressPercent}%</span>
           </div>
           <div
-            className="w-full h-2.5 rounded-full overflow-hidden"
-            style={{ backgroundColor: isDarkMode ? "#222E50" : "#E8F8F7" }}
+            className="w-full h-2 rounded-full overflow-hidden"
+            style={{ backgroundColor: isDarkMode ? "#0F172A" : "#E2E8F0" }}
           >
             <div
               className="h-full transition-all duration-500 rounded-full"
               style={{
                 width: `${progressPercent}%`,
-                background: "linear-gradient(90deg, #007991 0%, #97EFE9 100%)",
+                backgroundColor: "#007991",
               }}
             />
           </div>
@@ -153,7 +158,7 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
             <label
               htmlFor="bedtime-input"
               className="text-[11px] font-bold uppercase tracking-wider block mb-1 flex items-center gap-1"
-              style={{ color: isDarkMode ? "#8AA0C7" : "#3D4E75" }}
+              style={{ color: isDarkMode ? "#8699B8" : "#4A5B7D" }}
             >
               <Bed className="w-3.5 h-3.5 text-[#007991]" />
               Bedtime
@@ -165,9 +170,9 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
               onChange={(e) => onUpdateSleep({ ...sleep, bedTime: e.target.value })}
               className="w-full text-xs px-3 py-1.5 rounded-xl border focus-ring"
               style={{
-                backgroundColor: isDarkMode ? "#131B30" : "#FFFFFF",
-                borderColor: "#007991",
-                color: isDarkMode ? "#F0FCFB" : "#222E50",
+                backgroundColor: isDarkMode ? "#0F172A" : "#FFFFFF",
+                borderColor: isDarkMode ? "#27375A" : "#CBD5E1",
+                color: isDarkMode ? "#F8FAFC" : "#222E50",
               }}
             />
           </div>
@@ -175,7 +180,7 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
             <label
               htmlFor="waketime-input"
               className="text-[11px] font-bold uppercase tracking-wider block mb-1 flex items-center gap-1"
-              style={{ color: isDarkMode ? "#8AA0C7" : "#3D4E75" }}
+              style={{ color: isDarkMode ? "#8699B8" : "#4A5B7D" }}
             >
               <Clock className="w-3.5 h-3.5 text-[#007991]" />
               Wake Time
@@ -187,9 +192,9 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
               onChange={(e) => onUpdateSleep({ ...sleep, wakeTime: e.target.value })}
               className="w-full text-xs px-3 py-1.5 rounded-xl border focus-ring"
               style={{
-                backgroundColor: isDarkMode ? "#131B30" : "#FFFFFF",
-                borderColor: "#007991",
-                color: isDarkMode ? "#F0FCFB" : "#222E50",
+                backgroundColor: isDarkMode ? "#0F172A" : "#FFFFFF",
+                borderColor: isDarkMode ? "#27375A" : "#CBD5E1",
+                color: isDarkMode ? "#F8FAFC" : "#222E50",
               }}
             />
           </div>
@@ -199,7 +204,7 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
         <div className="mt-4">
           <label
             className="text-[11px] font-bold uppercase tracking-wider block mb-1.5 flex items-center gap-1"
-            style={{ color: isDarkMode ? "#8AA0C7" : "#3D4E75" }}
+            style={{ color: isDarkMode ? "#8699B8" : "#4A5B7D" }}
           >
             <Sparkles className="w-3.5 h-3.5 text-[#007991]" />
             Sleep Quality Rating
@@ -212,11 +217,11 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
                   key={opt}
                   type="button"
                   onClick={() => onUpdateSleep({ ...sleep, quality: isSelected ? "" : opt })}
-                  className="py-1.5 px-2 rounded-xl text-xs font-bold border transition-all text-center hover:scale-105 active:scale-95 cursor-pointer"
+                  className="py-1.5 px-2 rounded-xl text-xs font-semibold border transition-all text-center hover:opacity-85 active:scale-95 cursor-pointer"
                   style={{
-                    backgroundColor: isSelected ? "#007991" : isDarkMode ? "#131B30" : "#F4FBFB",
-                    borderColor: "#007991",
-                    color: isSelected ? "#FFFFFF" : isDarkMode ? "#97EFE9" : "#222E50",
+                    backgroundColor: isSelected ? "#007991" : "transparent",
+                    borderColor: isSelected ? "#007991" : isDarkMode ? "#27375A" : "#E2E8F0",
+                    color: isSelected ? "#FFFFFF" : isDarkMode ? "#8699B8" : "#4A5B7D",
                   }}
                 >
                   {opt}
@@ -228,9 +233,9 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
       </div>
 
       {/* Footer Reset */}
-      <div className="mt-5 pt-3 border-t border-[#007991]/20 flex items-center justify-between text-xs">
-        <span style={{ color: isDarkMode ? "#8AA0C7" : "#64779F" }}>
-          Blank initial state (0 hrs)
+      <div className="mt-5 pt-3 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between text-xs">
+        <span style={{ color: isDarkMode ? "#8699B8" : "#8496B3" }}>
+          Blank initial state
         </span>
         <button
           type="button"

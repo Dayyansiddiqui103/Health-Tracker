@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react";
 import confetti from "canvas-confetti";
 import { HealthData, DailyPlan, LoggedExercise, ChecklistItem, SleepLog } from "./types";
-import { Header, TabType } from "./components/Header";
+import { Header } from "./components/Header";
+import { TabsNav, TabType } from "./components/TabsNav";
 import { DailyPlanner } from "./components/DailyPlanner";
 import { DailyChecklist } from "./components/DailyChecklist";
 import { WaterTracker } from "./components/WaterTracker";
@@ -13,8 +14,8 @@ import { DailySummary } from "./components/DailySummary";
 import { ResetModal } from "./components/ResetModal";
 import { ArrowRight, Sparkles } from "lucide-react";
 
-const STORAGE_KEY = "student_health_tracker_data_v3";
-const THEME_KEY = "student_health_tracker_theme_v3";
+const STORAGE_KEY = "student_health_tracker_data_v4";
+const THEME_KEY = "student_health_tracker_theme_v4";
 
 // Pristine blank initial state with NO pre-filled dummy data
 const getInitialBlankData = (): HealthData => ({
@@ -97,8 +98,8 @@ export default function Home() {
   // Trigger celebratory confetti when all tasks completed
   const triggerConfetti = () => {
     confetti({
-      particleCount: 80,
-      spread: 70,
+      particleCount: 70,
+      spread: 60,
       origin: { y: 0.6 },
       colors: ["#97EFE9", "#007991", "#222E50"],
     });
@@ -345,10 +346,10 @@ export default function Home() {
 
   if (!isLoaded) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F4FBFB] text-[#222E50]">
+      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFB] text-[#222E50]">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-[#007991] border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm font-bold">Loading Student Health Tracker...</span>
+          <div className="w-9 h-9 border-3 border-[#007991] border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm font-semibold">Loading Student Health Tracker...</span>
         </div>
       </div>
     );
@@ -356,21 +357,26 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col transition-colors duration-200">
-      {/* Top Header with improved Logo and Tab Switcher */}
+      {/* 1. Ultra-Clean Top Navbar (No tabs, just logo & theme toggle) */}
       <Header
+        isDarkMode={isDarkMode}
+        onToggleTheme={toggleTheme}
+      />
+
+      {/* 2. Tabs Moved Below Navbar (Clean segmented control) */}
+      <TabsNav
         activeTab={activeTab}
         onChangeTab={setActiveTab}
         isDarkMode={isDarkMode}
-        onToggleTheme={toggleTheme}
         completionRate={completionRate}
         pendingTasksCount={pendingCount}
       />
 
-      {/* Main Container - Tabbed View */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 lg:p-8">
+      {/* 3. Main Container - Clean Tabbed View */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 md:px-8 pb-10">
         {/* TAB 1: Daily Planner */}
         {activeTab === "planner" && (
-          <div className="space-y-6 animate-fadeIn">
+          <div className="space-y-6">
             <DailyPlanner
               plan={data.plan}
               onUpdatePlan={handleUpdatePlan}
@@ -378,11 +384,11 @@ export default function Home() {
             />
 
             {/* Quick Next Step Helper */}
-            <div className="flex justify-end">
+            <div className="flex justify-end pt-2">
               <button
                 type="button"
                 onClick={() => setActiveTab("trackers")}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all hover:opacity-90 active:scale-95 shadow-xs cursor-pointer"
                 style={{ backgroundColor: "#007991", color: "#FFFFFF" }}
               >
                 <span>Continue to Health Trackers</span>
@@ -394,7 +400,7 @@ export default function Home() {
 
         {/* TAB 2: Interactive Health Trackers */}
         {activeTab === "trackers" && (
-          <div className="space-y-6 animate-fadeIn">
+          <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Water Tracker with Animated Liquid Glass */}
               <WaterTracker
@@ -427,11 +433,11 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setActiveTab("planner")}
-                className="px-4 py-2 rounded-xl text-xs md:text-sm font-semibold border transition-all hover:scale-105 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs md:text-sm font-semibold border transition-all hover:opacity-85 cursor-pointer"
                 style={{
-                  borderColor: "#007991",
-                  color: isDarkMode ? "#97EFE9" : "#222E50",
-                  backgroundColor: isDarkMode ? "#1A233D" : "#FFFFFF",
+                  borderColor: isDarkMode ? "#27375A" : "#CBD5E1",
+                  color: isDarkMode ? "#F8FAFC" : "#222E50",
+                  backgroundColor: isDarkMode ? "#172138" : "#FFFFFF",
                 }}
               >
                 ← Back to Planner
@@ -439,7 +445,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setActiveTab("checklist")}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all hover:opacity-90 active:scale-95 shadow-xs cursor-pointer"
                 style={{ backgroundColor: "#007991", color: "#FFFFFF" }}
               >
                 <span>View Daily Checklist</span>
@@ -451,7 +457,7 @@ export default function Home() {
 
         {/* TAB 3: Daily Checklist */}
         {activeTab === "checklist" && (
-          <div className="space-y-6 animate-fadeIn">
+          <div className="space-y-6">
             <DailyChecklist
               items={data.checklist}
               onToggleItem={handleToggleChecklistItem}
@@ -464,11 +470,11 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setActiveTab("trackers")}
-                className="px-4 py-2 rounded-xl text-xs md:text-sm font-semibold border transition-all hover:scale-105 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs md:text-sm font-semibold border transition-all hover:opacity-85 cursor-pointer"
                 style={{
-                  borderColor: "#007991",
-                  color: isDarkMode ? "#97EFE9" : "#222E50",
-                  backgroundColor: isDarkMode ? "#1A233D" : "#FFFFFF",
+                  borderColor: isDarkMode ? "#27375A" : "#CBD5E1",
+                  color: isDarkMode ? "#F8FAFC" : "#222E50",
+                  backgroundColor: isDarkMode ? "#172138" : "#FFFFFF",
                 }}
               >
                 ← Back to Trackers
@@ -476,7 +482,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setActiveTab("summary")}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all hover:opacity-90 active:scale-95 shadow-xs cursor-pointer"
                 style={{ backgroundColor: "#007991", color: "#FFFFFF" }}
               >
                 <span>View Summary & Health Score</span>
@@ -488,7 +494,7 @@ export default function Home() {
 
         {/* TAB 4: Daily Overview & Summary */}
         {activeTab === "summary" && (
-          <div className="space-y-6 animate-fadeIn">
+          <div className="space-y-6">
             <DailySummary
               data={data}
               isDarkMode={isDarkMode}
@@ -499,11 +505,11 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setActiveTab("checklist")}
-                className="px-4 py-2 rounded-xl text-xs md:text-sm font-semibold border transition-all hover:scale-105 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs md:text-sm font-semibold border transition-all hover:opacity-85 cursor-pointer"
                 style={{
-                  borderColor: "#007991",
-                  color: isDarkMode ? "#97EFE9" : "#222E50",
-                  backgroundColor: isDarkMode ? "#1A233D" : "#FFFFFF",
+                  borderColor: isDarkMode ? "#27375A" : "#CBD5E1",
+                  color: isDarkMode ? "#F8FAFC" : "#222E50",
+                  backgroundColor: isDarkMode ? "#172138" : "#FFFFFF",
                 }}
               >
                 ← Back to Checklist
@@ -513,20 +519,20 @@ export default function Home() {
         )}
       </main>
 
-      {/* Footer */}
+      {/* Clean Minimalist Footer */}
       <footer
-        className="mt-12 py-5 border-t text-center text-xs transition-colors"
+        className="mt-auto py-5 border-t text-center text-xs transition-colors"
         style={{
-          borderColor: isDarkMode ? "#2F3E68" : "#CBEFEE",
-          backgroundColor: isDarkMode ? "#131B30" : "#F4FBFB",
-          color: isDarkMode ? "#8AA0C7" : "#64779F",
+          borderColor: isDarkMode ? "#27375A" : "#E2E8F0",
+          backgroundColor: isDarkMode ? "#0F172A" : "#FFFFFF",
+          color: isDarkMode ? "#8699B8" : "#8496B3",
         }}
       >
         <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p>© 2026 Student Health Tracker — Built with #97EFE9, #007991, & #222E50.</p>
-          <div className="flex items-center gap-2 font-semibold" style={{ color: "#007991" }}>
+          <p>© 2026 Student Health Tracker</p>
+          <div className="flex items-center gap-2 font-medium" style={{ color: "#007991" }}>
             <Sparkles className="w-3.5 h-3.5 text-[#97EFE9]" />
-            <span>Student Wellness & Focus Companion</span>
+            <span>Clean, simple wellness & focus</span>
           </div>
         </div>
       </footer>
