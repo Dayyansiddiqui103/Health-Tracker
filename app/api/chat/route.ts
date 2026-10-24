@@ -170,6 +170,19 @@ Refer to these exact stats whenever relevant to give personalized feedback!
         } else {
           const errData = await geminiRes.json().catch(() => ({}));
           lastError = errData?.error?.message || `API error ${geminiRes.status}`;
+
+          // Detect quota exhaustion (429 / RESOURCE_EXHAUSTED)
+          if (geminiRes.status === 429 || lastError.toLowerCase().includes("quota") || lastError.toLowerCase().includes("exhausted")) {
+            let rateLimitAdvice = "⏳ **Google Gemini Free Tier Rate Limit Reached** (15 requests/min or 1,500/day).\n\n";
+            if (healthContext) {
+              rateLimitAdvice += `Here is your personal health coaching summary while quota resets:\n`;
+              rateLimitAdvice += `• **Hydration:** You have drank ${healthContext.waterGlasses}/${healthContext.waterGoal || 8} glasses. Keep sipping regularly!\n`;
+              rateLimitAdvice += `• **Sleep:** ${healthContext.sleepHours || 0} hrs logged (${healthContext.sleepQuality || "Not rated"}). Aim for 7-9 hours for exam stamina.\n`;
+              rateLimitAdvice += `• **Activity:** ${healthContext.exerciseMinutes} mins completed across ${healthContext.exercisesCount} sessions.\n\n`;
+            }
+            rateLimitAdvice += "💡 *Tip:* The per-minute limit resets after 60 seconds, and your 1,500 daily requests reset at midnight UTC. You can also generate a new free key at aistudio.google.com!";
+            return NextResponse.json({ reply: rateLimitAdvice });
+          }
         }
       } catch (fetchErr) {
         lastError = fetchErr instanceof Error ? fetchErr.message : "Network error";
