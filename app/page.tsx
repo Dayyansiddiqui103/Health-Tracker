@@ -11,6 +11,7 @@ import { WaterTracker } from "./components/WaterTracker";
 import { SleepTracker } from "./components/SleepTracker";
 import { ExerciseTracker } from "./components/ExerciseTracker";
 import { DailySummary } from "./components/DailySummary";
+import { AIChatCoach } from "./components/AIChatCoach";
 import { ResetModal } from "./components/ResetModal";
 import { ArrowRight, Sparkles } from "lucide-react";
 
@@ -504,7 +505,7 @@ export default function Home() {
               onOpenResetModal={() => setIsResetModalOpen(true)}
             />
 
-            <div className="flex justify-start pt-2">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setActiveTab("checklist")}
@@ -517,7 +518,24 @@ export default function Home() {
               >
                 ← Back to Checklist
               </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab("ai-coach")}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all hover:opacity-90 active:scale-95 shadow-xs cursor-pointer"
+                style={{ backgroundColor: "#007991", color: "#FFFFFF" }}
+              >
+                <span>Ask AI Health Coach</span>
+                <ArrowRight className="w-4 h-4 text-[#97EFE9]" />
+              </button>
             </div>
+          </div>
+        )}
+
+        {/* TAB 5: AI Health & Wellness Coach */}
+        {activeTab === "ai-coach" && (
+          <div className="space-y-6">
+            <AIChatCoach data={data} isDarkMode={isDarkMode} />
           </div>
         )}
       </main>

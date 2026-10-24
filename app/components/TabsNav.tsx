@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { CalendarDays, Droplets, CheckSquare, BarChart3 } from "lucide-react";
+import { CalendarDays, Droplets, CheckSquare, BarChart3, Bot } from "lucide-react";
 
-export type TabType = "planner" | "trackers" | "checklist" | "summary";
+export type TabType = "planner" | "trackers" | "checklist" | "summary" | "ai-coach";
 
 interface TabsNavProps {
   activeTab: TabType;
@@ -24,6 +24,7 @@ export const TabsNav: React.FC<TabsNavProps> = ({
     { id: "trackers" as TabType, label: "Health Trackers", icon: Droplets },
     { id: "checklist" as TabType, label: "Daily Checklist", icon: CheckSquare, badge: pendingTasksCount > 0 ? `${pendingTasksCount}` : undefined },
     { id: "summary" as TabType, label: "Overview & Score", icon: BarChart3, badge: `${completionRate}%` },
+    { id: "ai-coach" as TabType, label: "AI Health Coach", icon: Bot, badge: "AI" },
   ];
 
   return (

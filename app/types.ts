@@ -48,3 +48,10 @@ export interface HealthData {
   exercises: LoggedExercise[];
   checklist: ChecklistItem[];
 }
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+}
