@@ -21,8 +21,12 @@ export const Header: React.FC<HeaderProps> = ({ isDarkMode, onToggleTheme }) => 
         {/* Brand & Colorful Palette Logo */}
         <div className="flex items-center gap-3">
           <div
-            className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-md transition-transform hover:scale-105"
+            className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-md transition-transform hover:scale-105 shrink-0"
             style={{
+              width: "40px",
+              height: "40px",
+              minWidth: "40px",
+              minHeight: "40px",
               backgroundColor: "#97EFE9",
               border: "2px solid #FFFFFF",
             }}
@@ -30,6 +34,9 @@ export const Header: React.FC<HeaderProps> = ({ isDarkMode, onToggleTheme }) => 
             {/* Health Pulse SVG Logo in Palette #222E50 & #007991 */}
             <svg
               className="w-6 h-6"
+              width="24"
+              height="24"
+              style={{ width: "24px", height: "24px" }}
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
