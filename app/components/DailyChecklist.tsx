@@ -19,7 +19,7 @@ export const DailyChecklist: React.FC<DailyChecklistProps> = ({
   onDeleteItem,
 }) => {
   const [newTaskTitle, setNewTaskTitle] = useState("");
-  const [newTaskCategory, setNewTaskCategory] = useState<ChecklistItem["category"]>("custom");
+  const newTaskCategory: ChecklistItem["category"] = "custom";
   const [filter, setFilter] = useState<"all" | "pending" | "completed">("all");
 
   const handleAdd = (e: React.FormEvent) => {

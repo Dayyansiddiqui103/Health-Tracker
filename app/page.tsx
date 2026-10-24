@@ -48,26 +48,29 @@ export default function Home() {
 
   // Load saved theme and data from localStorage on initial mount
   useEffect(() => {
-    try {
-      const savedTheme = localStorage.getItem(THEME_KEY);
-      if (savedTheme === "dark") {
-        setIsDarkMode(true);
-        document.documentElement.classList.add("dark");
-      } else {
-        setIsDarkMode(false);
-        document.documentElement.classList.remove("dark");
-      }
+    const timer = setTimeout(() => {
+      try {
+        const savedTheme = localStorage.getItem(THEME_KEY);
+        const isDark = savedTheme === "dark";
+        if (isDark) {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+        setIsDarkMode(isDark);
 
-      const savedData = localStorage.getItem(STORAGE_KEY);
-      if (savedData) {
-        const parsed = JSON.parse(savedData);
-        setData(parsed);
+        const savedData = localStorage.getItem(STORAGE_KEY);
+        if (savedData) {
+          setData(JSON.parse(savedData));
+        }
+      } catch (err) {
+        console.error("Failed to load local storage:", err);
+      } finally {
+        setIsLoaded(true);
       }
-    } catch (err) {
-      console.error("Failed to load local storage:", err);
-    } finally {
-      setIsLoaded(true);
-    }
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, []);
 
   // Save data to localStorage whenever updated

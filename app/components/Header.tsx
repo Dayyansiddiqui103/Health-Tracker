@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Sun, Moon, Sparkles } from "lucide-react";
+import { Sun, Moon } from "lucide-react";
 
 interface HeaderProps {
   isDarkMode: boolean;
