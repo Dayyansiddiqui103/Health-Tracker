@@ -10,7 +10,7 @@ interface DailySummaryProps {
   onOpenResetModal: () => void;
 }
 
-export const DailySummary: React.FC<DailySummaryProps> = ({ data, isDarkMode, onOpenResetModal }) => {
+export const DailySummary: React.FC<DailySummaryProps> = ({ data, onOpenResetModal }) => {
   const { plan, waterGlasses, sleep, exercises, checklist } = data;
 
   const completedTasks = checklist.filter((t) => t.completed).length;
@@ -32,39 +32,43 @@ export const DailySummary: React.FC<DailySummaryProps> = ({ data, isDarkMode, on
   );
 
   return (
-    <section className="theme-card rounded-2xl p-6 md:p-8 transition-all">
+    <section
+      className="rounded-3xl p-6 md:p-8 transition-all border shadow-lg"
+      style={{
+        background: "linear-gradient(145deg, #18223C 0%, #222E50 100%)",
+        borderColor: "#007991",
+        boxShadow: "0 10px 30px rgba(0, 121, 145, 0.2)",
+      }}
+    >
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-neutral-100 dark:border-neutral-800 gap-4">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-[#007991]/30 gap-4">
+        <div className="flex items-center gap-3.5">
           <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center"
+            className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md shrink-0"
             style={{
-              backgroundColor: isDarkMode ? "#222E50" : "#F1F5F8",
-              border: "1px solid #007991",
+              backgroundColor: "#007991",
+              border: "2px solid #97EFE9",
             }}
           >
-            <HeartPulse className="w-5 h-5 text-[#007991]" />
+            <HeartPulse className="w-6 h-6 text-[#97EFE9]" />
           </div>
           <div>
-            <h2
-              className="text-lg md:text-xl font-bold tracking-tight"
-              style={{ color: isDarkMode ? "#F8FAFC" : "#222E50" }}
-            >
+            <h2 className="text-lg md:text-xl font-extrabold tracking-tight text-white">
               Today&apos;s Health Overview & Score
             </h2>
-            <p className="text-xs" style={{ color: isDarkMode ? "#8699B8" : "#8496B3" }}>
+            <p className="text-xs text-[#97EFE9] font-medium">
               Quick summary of hydration, rest, workouts, and completed checklist habits
             </p>
           </div>
         </div>
 
-        {/* Health Score Pill */}
+        {/* Health Score Badge */}
         <div
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-xs font-bold"
+          className="flex items-center gap-2 px-4 py-2 rounded-2xl border text-xs font-extrabold shadow-md"
           style={{
-            backgroundColor: isDarkMode ? "#172138" : "#F1F5F8",
-            borderColor: isDarkMode ? "#27375A" : "#E2E8F0",
-            color: isDarkMode ? "#97EFE9" : "#222E50",
+            backgroundColor: "#97EFE9",
+            borderColor: "#FFFFFF",
+            color: "#222E50",
           }}
         >
           <Award className="w-4 h-4 text-[#007991]" />
@@ -72,92 +76,92 @@ export const DailySummary: React.FC<DailySummaryProps> = ({ data, isDarkMode, on
         </div>
       </div>
 
-      {/* 4 Cards Grid */}
+      {/* 4 Cards Grid - Styled with palette #97EFE9, #007991, #222E50 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-        {/* Water */}
+        {/* Card 1: Water */}
         <div
-          className="p-5 rounded-2xl border transition-all"
+          className="p-5 rounded-2xl border transition-all shadow-md hover:scale-[1.02]"
           style={{
-            backgroundColor: isDarkMode ? "#0F172A" : "#FFFFFF",
-            borderColor: isDarkMode ? "#27375A" : "#E2E8F0",
+            background: "linear-gradient(135deg, #007991 0%, #005F73 100%)",
+            borderColor: "#97EFE9",
           }}
         >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: isDarkMode ? "#8699B8" : "#8496B3" }}>
+            <span className="text-xs font-extrabold uppercase tracking-wider text-[#97EFE9]">
               Water
             </span>
-            <Droplets className="w-4 h-4 text-[#007991]" />
+            <Droplets className="w-4 h-4 text-[#97EFE9]" />
           </div>
-          <div className="text-2xl font-extrabold" style={{ color: isDarkMode ? "#F8FAFC" : "#222E50" }}>
-            {waterGlasses} <span className="text-xs font-normal">/ {waterTarget} glasses</span>
+          <div className="text-2xl font-extrabold text-white">
+            {waterGlasses} <span className="text-xs font-medium text-[#97EFE9]">/ {waterTarget} gl</span>
           </div>
-          <div className="text-[11px] font-medium mt-1" style={{ color: isDarkMode ? "#8699B8" : "#8496B3" }}>
+          <div className="text-[11px] font-bold mt-1 text-[#97EFE9]/90">
             {waterPercent}% of target
           </div>
         </div>
 
-        {/* Sleep */}
+        {/* Card 2: Sleep */}
         <div
-          className="p-5 rounded-2xl border transition-all"
+          className="p-5 rounded-2xl border transition-all shadow-md hover:scale-[1.02]"
           style={{
-            backgroundColor: isDarkMode ? "#0F172A" : "#FFFFFF",
-            borderColor: isDarkMode ? "#27375A" : "#E2E8F0",
+            background: "linear-gradient(135deg, #222E50 0%, #16223B 100%)",
+            borderColor: "#007991",
           }}
         >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: isDarkMode ? "#8699B8" : "#8496B3" }}>
+            <span className="text-xs font-extrabold uppercase tracking-wider text-[#97EFE9]">
               Sleep
             </span>
-            <Moon className="w-4 h-4 text-[#007991]" />
+            <Moon className="w-4 h-4 text-[#97EFE9]" />
           </div>
-          <div className="text-2xl font-extrabold" style={{ color: isDarkMode ? "#F8FAFC" : "#222E50" }}>
-            {sleepActual} <span className="text-xs font-normal">/ {sleepTarget} hrs</span>
+          <div className="text-2xl font-extrabold text-white">
+            {sleepActual} <span className="text-xs font-medium text-[#97EFE9]">/ {sleepTarget} hrs</span>
           </div>
-          <div className="text-[11px] font-medium mt-1" style={{ color: isDarkMode ? "#8699B8" : "#8496B3" }}>
+          <div className="text-[11px] font-bold mt-1 text-[#97EFE9]/90">
             {sleep.quality ? `Quality: ${sleep.quality}` : "Unrated"}
           </div>
         </div>
 
-        {/* Exercise */}
+        {/* Card 3: Exercise */}
         <div
-          className="p-5 rounded-2xl border transition-all"
+          className="p-5 rounded-2xl border transition-all shadow-md hover:scale-[1.02]"
           style={{
-            backgroundColor: isDarkMode ? "#0F172A" : "#FFFFFF",
-            borderColor: isDarkMode ? "#27375A" : "#E2E8F0",
+            background: "linear-gradient(135deg, #0D2840 0%, #007991 100%)",
+            borderColor: "#97EFE9",
           }}
         >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: isDarkMode ? "#8699B8" : "#8496B3" }}>
+            <span className="text-xs font-extrabold uppercase tracking-wider text-[#97EFE9]">
               Exercise
             </span>
-            <Dumbbell className="w-4 h-4 text-[#007991]" />
+            <Dumbbell className="w-4 h-4 text-[#97EFE9]" />
           </div>
-          <div className="text-2xl font-extrabold" style={{ color: isDarkMode ? "#F8FAFC" : "#222E50" }}>
-            {totalExerciseMinutes} <span className="text-xs font-normal">mins</span>
+          <div className="text-2xl font-extrabold text-white">
+            {totalExerciseMinutes} <span className="text-xs font-medium text-[#97EFE9]">mins</span>
           </div>
-          <div className="text-[11px] font-medium mt-1" style={{ color: isDarkMode ? "#8699B8" : "#8496B3" }}>
+          <div className="text-[11px] font-bold mt-1 text-[#97EFE9]/90">
             {exercises.length} activities logged
           </div>
         </div>
 
-        {/* Checklist */}
+        {/* Card 4: Checklist */}
         <div
-          className="p-5 rounded-2xl border transition-all"
+          className="p-5 rounded-2xl border transition-all shadow-md hover:scale-[1.02]"
           style={{
-            backgroundColor: isDarkMode ? "#0F172A" : "#FFFFFF",
-            borderColor: isDarkMode ? "#27375A" : "#E2E8F0",
+            background: "linear-gradient(135deg, #182C4C 0%, #222E50 100%)",
+            borderColor: "#007991",
           }}
         >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: isDarkMode ? "#8699B8" : "#8496B3" }}>
+            <span className="text-xs font-extrabold uppercase tracking-wider text-[#97EFE9]">
               Checklist
             </span>
-            <CheckCircle2 className="w-4 h-4 text-[#007991]" />
+            <CheckCircle2 className="w-4 h-4 text-[#97EFE9]" />
           </div>
-          <div className="text-2xl font-extrabold" style={{ color: isDarkMode ? "#F8FAFC" : "#222E50" }}>
-            {completedTasks} <span className="text-xs font-normal">/ {totalTasks} tasks</span>
+          <div className="text-2xl font-extrabold text-white">
+            {completedTasks} <span className="text-xs font-medium text-[#97EFE9]">/ {totalTasks} tasks</span>
           </div>
-          <div className="text-[11px] font-medium mt-1" style={{ color: isDarkMode ? "#8699B8" : "#8496B3" }}>
+          <div className="text-[11px] font-bold mt-1 text-[#97EFE9]/90">
             {checklistPercent}% completed
           </div>
         </div>
@@ -165,50 +169,49 @@ export const DailySummary: React.FC<DailySummaryProps> = ({ data, isDarkMode, on
 
       {/* Student Health Tip Banner */}
       <div
-        className="mt-6 p-4 rounded-2xl border flex items-center gap-3.5 text-xs md:text-sm"
+        className="mt-6 p-4 rounded-2xl border flex items-center gap-3.5 text-xs md:text-sm shadow-sm"
         style={{
-          backgroundColor: isDarkMode ? "#0F172A" : "#F8FAFC",
-          borderColor: isDarkMode ? "#27375A" : "#E2E8F0",
-          color: isDarkMode ? "#F8FAFC" : "#222E50",
+          background: "linear-gradient(135deg, rgba(0, 121, 145, 0.35) 0%, rgba(34, 46, 80, 0.5) 100%)",
+          borderColor: "#007991",
         }}
       >
-        <GraduationCap className="w-5 h-5 flex-shrink-0 text-[#007991]" />
+        <GraduationCap className="w-5 h-5 flex-shrink-0 text-[#97EFE9]" />
         <div>
-          <span className="font-bold">Student Wellness Tip: </span>
-          <span style={{ color: isDarkMode ? "#8699B8" : "#4A5B7D" }}>
+          <span className="font-extrabold text-[#97EFE9]">Student Wellness Tip: </span>
+          <span className="text-white/90 font-medium">
             Hydrating before lectures boosts concentration and memory retention. Taking a 5-minute stretch break every study hour reduces eye strain and recharges focus!
           </span>
         </div>
       </div>
 
       {/* Actions: Print and Reset All Data */}
-      <div className="mt-6 pt-5 border-t border-neutral-100 dark:border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+      <div className="mt-6 pt-5 border-t border-[#007991]/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
         <button
           type="button"
           onClick={() => window.print()}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl border font-semibold transition-all hover:opacity-85 cursor-pointer"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl border font-bold transition-all hover:scale-105 active:scale-95 shadow-md cursor-pointer"
           style={{
-            borderColor: isDarkMode ? "#27375A" : "#CBD5E1",
-            color: isDarkMode ? "#F8FAFC" : "#222E50",
-            backgroundColor: isDarkMode ? "#172138" : "#FFFFFF",
+            backgroundColor: "#007991",
+            borderColor: "#97EFE9",
+            color: "#FFFFFF",
           }}
         >
-          <Printer className="w-4 h-4 text-[#007991]" />
+          <Printer className="w-4 h-4 text-[#97EFE9]" />
           <span>Print / Export Summary</span>
         </button>
 
         <button
           type="button"
           onClick={onOpenResetModal}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold border transition-all hover:opacity-85 cursor-pointer"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold border transition-all hover:scale-105 active:scale-95 shadow-md cursor-pointer"
           style={{
-            backgroundColor: isDarkMode ? "#222E50" : "#FFFFFF",
-            borderColor: isDarkMode ? "#27375A" : "#CBD5E1",
-            color: isDarkMode ? "#97EFE9" : "#222E50",
+            backgroundColor: "#222E50",
+            borderColor: "#97EFE9",
+            color: "#97EFE9",
           }}
           title="Reset all health inputs to blank state"
         >
-          <RotateCcw className="w-4 h-4 text-[#007991]" />
+          <RotateCcw className="w-4 h-4 text-[#97EFE9]" />
           <span>Reset All Data to Blank</span>
         </button>
       </div>
