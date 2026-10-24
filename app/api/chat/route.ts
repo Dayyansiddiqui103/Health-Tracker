@@ -19,6 +19,11 @@ interface HealthContext {
   focusNote?: string;
 }
 
+interface GeminiModelItem {
+  name: string;
+  supportedGenerationMethods?: string[];
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -34,7 +39,7 @@ export async function POST(req: NextRequest) {
 
     const effectiveApiKey = (userApiKey && userApiKey.trim()) || process.env.GEMINI_API_KEY;
 
-    // Generate fallback personalized response if no API key is provided
+    // Generate helpful contextual response if no API key is set
     if (!effectiveApiKey) {
       const latestUserMsg = messages[messages.length - 1].content.toLowerCase();
       let fallbackText = "I'm your Student Wellness Coach! ";
@@ -44,7 +49,7 @@ export async function POST(req: NextRequest) {
         fallbackText += `• Hydration: ${healthContext.waterGlasses}/${healthContext.waterGoal || 8} glasses.\n`;
         fallbackText += `• Rest: ${healthContext.sleepHours || 0} hrs (${healthContext.sleepQuality || "Not rated"}).\n`;
         fallbackText += `• Exercise: ${healthContext.exerciseMinutes} mins across ${healthContext.exercisesCount} activities.\n`;
-        fallbackText += `• Tasks: ${healthContext.completedTasks}/${healthContext.totalTasks} completed.\n\n`;
+        fallbackText += `• Habits: ${healthContext.completedTasks}/${healthContext.totalTasks} completed.\n\n`;
       }
 
       if (latestUserMsg.includes("water") || latestUserMsg.includes("drink")) {
@@ -54,7 +59,7 @@ export async function POST(req: NextRequest) {
       } else if (latestUserMsg.includes("workout") || latestUserMsg.includes("exercise")) {
         fallbackText += "⚡ Tip: A 15-minute brisk walk or quick stretching session releases endorphins that reduce exam anxiety and boost alertness!";
       } else {
-        fallbackText += "💡 For full real-time conversational AI, please add your free Google Gemini API key using the 'Enter API Key' button above. You can get one for free at aistudio.google.com!";
+        fallbackText += "💡 For full real-time conversational AI, please add your free Google Gemini API key using the 'Gemini API Key' button above. You can get one for free in 30 seconds at aistudio.google.com!";
       }
 
       return NextResponse.json({
@@ -87,34 +92,96 @@ Refer to these exact stats whenever relevant to give personalized feedback!
       parts: [{ text: m.content }],
     }));
 
-    // Call Google Gemini API (gemini-1.5-flash)
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(effectiveApiKey)}`;
+    // Find the active, supported Gemini model for this user's API key
+    let candidateUrls: string[] = [];
 
-    const geminiRes = await fetch(geminiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        systemInstruction: {
-          parts: [{ text: systemInstruction }],
-        },
-        contents: geminiContents,
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 800,
-        },
-      }),
-    });
+    try {
+      const listRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(effectiveApiKey)}`,
+        { method: "GET" }
+      );
 
-    if (!geminiRes.ok) {
-      const errData = await geminiRes.json().catch(() => ({}));
-      const errorMsg = errData?.error?.message || `Google Gemini API returned error ${geminiRes.status}`;
-      return NextResponse.json({ error: errorMsg }, { status: geminiRes.status });
+      if (listRes.ok) {
+        const listData = await listRes.json();
+        const availableModels: GeminiModelItem[] = listData.models || [];
+        const contentModels = availableModels.filter((m) =>
+          m.supportedGenerationMethods?.includes("generateContent")
+        );
+
+        if (contentModels.length > 0) {
+          // Rank models: flash first (fast & lightweight for chat), then others
+          const sorted = [...contentModels].sort((a, b) => {
+            const aFlash = a.name.includes("flash") ? 1 : 0;
+            const bFlash = b.name.includes("flash") ? 1 : 0;
+            return bFlash - aFlash;
+          });
+
+          candidateUrls = sorted.map(
+            (m) =>
+              `https://generativelanguage.googleapis.com/v1beta/${m.name}:generateContent?key=${encodeURIComponent(
+                effectiveApiKey
+              )}`
+          );
+        }
+      }
+    } catch (listErr) {
+      console.warn("Failed to auto-discover models list:", listErr);
     }
 
-    const geminiData = await geminiRes.json();
-    const candidateText =
-      geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "I'm here to help with your health and study goals! What would you like to know?";
+    // Default fallback candidate endpoints if list query didn't populate
+    if (candidateUrls.length === 0) {
+      candidateUrls = [
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(effectiveApiKey)}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${encodeURIComponent(effectiveApiKey)}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${encodeURIComponent(effectiveApiKey)}`,
+        `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(effectiveApiKey)}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${encodeURIComponent(effectiveApiKey)}`,
+      ];
+    }
+
+    let lastError = "";
+    let candidateText = "";
+
+    // Try candidate endpoints until one succeeds
+    for (const url of candidateUrls.slice(0, 5)) {
+      try {
+        const geminiRes = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: {
+              parts: [{ text: systemInstruction }],
+            },
+            contents: geminiContents,
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 800,
+            },
+          }),
+        });
+
+        if (geminiRes.ok) {
+          const geminiData = await geminiRes.json();
+          const reply = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (reply) {
+            candidateText = reply;
+            break;
+          }
+        } else {
+          const errData = await geminiRes.json().catch(() => ({}));
+          lastError = errData?.error?.message || `API error ${geminiRes.status}`;
+        }
+      } catch (fetchErr) {
+        lastError = fetchErr instanceof Error ? fetchErr.message : "Network error";
+      }
+    }
+
+    if (!candidateText) {
+      return NextResponse.json(
+        { error: lastError || "Could not generate response with the provided Gemini API key." },
+        { status: 400 }
+      );
+    }
 
     return NextResponse.json({ reply: candidateText });
   } catch (error) {
