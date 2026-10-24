@@ -16,7 +16,6 @@ interface TabsNavProps {
 export const TabsNav: React.FC<TabsNavProps> = ({
   activeTab,
   onChangeTab,
-  isDarkMode,
   completionRate,
   pendingTasksCount,
 }) => {
@@ -30,10 +29,10 @@ export const TabsNav: React.FC<TabsNavProps> = ({
   return (
     <div className="flex justify-center my-6 px-4">
       <nav
-        className="inline-flex items-center p-1.5 rounded-2xl border transition-all overflow-x-auto shadow-xs"
+        className="inline-flex items-center p-1.5 rounded-2xl border transition-all overflow-x-auto shadow-md"
         style={{
-          backgroundColor: isDarkMode ? "#172138" : "#FFFFFF",
-          borderColor: isDarkMode ? "#27375A" : "#E2E8F0",
+          backgroundColor: "#222E50",
+          borderColor: "#007991",
         }}
       >
         {tabs.map((tab) => {
@@ -44,22 +43,22 @@ export const TabsNav: React.FC<TabsNavProps> = ({
               key={tab.id}
               type="button"
               onClick={() => onChangeTab(tab.id)}
-              className={`flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all whitespace-nowrap cursor-pointer ${
-                isActive ? "shadow-xs" : "hover:opacity-75"
+              className={`flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
+                isActive ? "shadow-sm scale-[1.02]" : "hover:text-[#97EFE9]"
               }`}
               style={{
-                backgroundColor: isActive ? "#007991" : "transparent",
-                color: isActive ? "#FFFFFF" : isDarkMode ? "#8699B8" : "#4A5B7D",
+                backgroundColor: isActive ? "#97EFE9" : "transparent",
+                color: isActive ? "#222E50" : "#FFFFFF",
               }}
             >
-              <Icon className={`w-4 h-4 ${isActive ? "text-[#97EFE9]" : ""}`} />
+              <Icon className={`w-4 h-4 ${isActive ? "text-[#222E50]" : "text-[#97EFE9]"}`} />
               <span>{tab.label}</span>
               {tab.badge && (
                 <span
-                  className="text-[10px] px-1.5 py-0.5 rounded-full font-bold ml-1"
+                  className="text-[10px] px-2 py-0.5 rounded-full font-extrabold ml-1"
                   style={{
-                    backgroundColor: isActive ? "#222E50" : isDarkMode ? "#222E50" : "#F1F5F8",
-                    color: isActive ? "#97EFE9" : isDarkMode ? "#8699B8" : "#4A5B7D",
+                    backgroundColor: isActive ? "#007991" : "#007991",
+                    color: isActive ? "#97EFE9" : "#FFFFFF",
                   }}
                 >
                   {tab.badge}
